@@ -1,6 +1,7 @@
 package me.syz.freelook.mixins;
 
 import me.syz.freelook.FreelookMod;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.network.handshake.FMLHandshakeMessage;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,12 +13,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 import java.util.Map;
 
-@Mixin(FMLHandshakeMessage.ModList.class)
+@Mixin(value = FMLHandshakeMessage.ModList.class, remap = false)
 public class ModListMixin {
-    @Shadow(remap = false) private Map<String,String> modTags;
+    @Shadow private Map<String,String> modTags;
 
-    @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"), remap = false)
+    @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
     private void removeMod(List<ModContainer> modList, CallbackInfo ci) {
-        this.modTags.keySet().removeIf(key -> key.equals(FreelookMod.MODID));
+        if (!Minecraft.getMinecraft().isIntegratedServerRunning())
+            this.modTags.remove(FreelookMod.MODID);
     }
 }
